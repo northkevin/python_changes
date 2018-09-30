@@ -24,6 +24,17 @@ def spin():
     return random.choice(dollars)
 
 
+def display_current_winnings(word, blanks, guesses, winnings, turns):
+    """Updates the user with their total winnings and the letters they have gotten correct."""
+    for (index, letter) in enumerate(word):
+        if letter in guesses:
+            blanks[index] = '{0} '.format(letter)
+    print("Your total winnings are ${0} with {1} spin(s) to go\n"
+          "Here's what you have right so far:\n\n"
+          "{2}\n\n"
+          "Let's spin again!\n".format(winnings, turns, ''.join(blanks)))
+
+
 def wheel_of_fortune():
     """ Play Wheel of Fortune! """
 
@@ -107,14 +118,8 @@ def wheel_of_fortune():
                     turns -= 1
                     guesses.append(guess)
 
-            # Updates the user with their total winnings and the letters they have gotten correct.
-            for (i, v) in enumerate(w):
-                if v in guesses:
-                    b[i] = '{0} '.format(v)
-            print("Your total winnings are ${0} with {1} spin(s) to go\n"
-                  "Here's what you have right so far:\n\n"
-                  "{2}\n\n"
-                  "Let's spin again!\n".format(winnings, turns, ''.join(b)))
+            display_current_winnings(w, b, guesses, winnings, turns)
+
 
     # Outputs once the game is over
 
