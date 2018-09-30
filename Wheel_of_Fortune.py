@@ -42,7 +42,6 @@ def wheel_of_fortune():
 
     # Play the game until the user runs out of turns.
     while turns != 0 and '_ ' in b:
-        time.sleep(3)
         s = spin()
         # If the user spins a 'bankrupt'
         if s == -1:
