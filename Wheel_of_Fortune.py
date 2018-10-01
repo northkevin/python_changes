@@ -1,7 +1,8 @@
 import random
 import time
 
-BLANK_LETTER='_'
+BLANK_LETTER = '_'
+valid_choices = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 
 def word_choice():
@@ -59,8 +60,8 @@ def wheel_of_fortune():
     game_board = init_game_board(w)
     total_turns = 5 + len(w)            # How many turns the user gets.
     winnings = 0                        # Total number of winnings.
-    guesses = []                        # List of all letters that have been guessed.
     vowels = ('a', 'e', 'i', 'o', 'u')
+    this_games_valid_choices = valid_choices
 
     print("Time to play some Wheel of Fortune!\n"
           "Your word today is:\n\n"
@@ -86,6 +87,7 @@ def wheel_of_fortune():
                   "Or if you think you know the word, guess that!\n"
                   "Remember, vowels will cost you $250\n".format(s))
             guess = input("What do you think it could be?\n")
+            guess = guess.lower()
             # The user makes an attempt at guessing the word.
             if len(guess) > 1:
                 # The user guesses the correct word
@@ -97,8 +99,10 @@ def wheel_of_fortune():
                 # The user's attempt at guessing the word was wrong.
                 else:
                     print("\nSorry that isn't correct. Try again!")
-            # The user guesses a letter they have already guessed.
-            elif guess in guesses:
+            # The user provides an invalid single character
+            elif guess.lower() not in valid_choices:
+                print("\nSorry!  Your input was not recognized, please enter a letter from the English Alphabet")
+            elif guess.lower() not in this_games_valid_choices:
                 print("\nYou've already guessed that! Now you lose a turn.")
             # The user guesses a vowel.
             elif guess in vowels:
@@ -109,25 +113,25 @@ def wheel_of_fortune():
                 elif winnings > 250 and guess in w:
                     print("\nThat's correct!")
                     winnings -= 250
-                    guesses.append(guess)
+                    this_games_valid_choices.remove(guess)
                     update_board(game_board, w, guess)
                 else:
                     print("\nSorry, that's incorrect. Let's try again")
                     winnings -= 250
-                    guesses.append(guess)
+                    this_games_valid_choices.remove(guess)
             # Any other letter is guessed.
             else:
                 # The user guesses a correct letter.
                 if guess in w:
                     print("\nThat's correct!" )
                     winnings += s
-                    guesses.append(guess)
+                    this_games_valid_choices.remove(guess)
                     update_board(game_board, w, guess)
 
                 # The user guessed wrong.
                 else:
                     print("\nSorry, that's incorrect. Let's try again")
-                    guesses.append(guess)
+                    this_games_valid_choices.remove(guess)
 
             display_board_and_current_winnings(game_board, winnings, get_number_of_remaining_turns(total_turns, current_turn))
 
@@ -141,7 +145,7 @@ def wheel_of_fortune():
               "Way to go!".format(winnings))
     # The user ran out of guesses.
     elif not is_game_board_complete(game_board):
-        print("Looks like you ran out of guesses.\n"
+        print("Looks like you ran out of spins.\n"
               "The word was '{0}'\n"
               "Better luck next time!".format(w))
     # The user completed the word by guessing the final word.
