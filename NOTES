@@ -1,0 +1,222 @@
+1.  Maybe instead of exit at the end of the program --> ask user if they want to exit or play again.
+	* requires a main menu.. idk if that's part of the assignment though
+
+2.  time.sleep(3) --> why?  Usually just never good idea to put sleeps in your code.
+
+3.  I think code gets easier to read when methods (with comments) explain what's happening, instead of comments over lines of code.
+
+ex.
+
+'line 111-118'
+# Updates the user with their total winnings and the letters they have gotten correct.
+            for (i, v) in enumerate(w):
+                if v in guesses:
+                    b[i] = '{0} '.format(v)
+            print("Your total winnings are ${0} with {1} spin(s) to go\n"
+                  "Here's what you have right so far:\n\n"
+                  "{2}\n\n"
+                  "Let's spin again!\n".format(winnings, turns, ''.join(b)))
+
+could be something like..
+
+def display_current_winnings(word, blanks, guesses, winnings, turns):
+	"Updates the user with their total winnings and the letters they have gotten correct."
+	for (index, letter) in enumerate(word):
+                if letter in guesses:
+                    blanks[i] = '{0} '.format(letter)
+            print("Your total winnings are ${0} with {1} spin(s) to go\n"
+                  "Here's what you have right so far:\n\n"
+                  "{2}\n\n"
+                  "Let's spin again!\n".format(winnings, turns, ''.join(blanks)))
+
+'line 111'
+display_current_winnings(w,b,guesses,winnings,turns)
+
+4.  As I made that 'display_current_winnings()' method in ex #3.. I found out how many variables are being kept track of in your loop.. 
+    I think you're using the 'b' variable to generate the '_ _ _ _' string to the user .. and as a boolean check for your main while loop.  I think those 2 ideas could be easier to understand if those ideas were seperated.
+
+    * Idk the rules of wheel of fortune .. but is there a way for there to be any more turns after that number has been decided?  I think for loop or a countdown from max # of turns could be used, so you can get rid of the while loop.  If you can reduce the chance of an infinite loop happening.. always a safer bet.
+
+    ex ..
+
+'starting at line 43'
+    # Play the game until the user runs out of turns.
+    while turns != 0 and '_ ' in b:
+        time.sleep(3)
+        s = spin()
+
+'could be for loop instead..'
+	# Play the game until the user runs out of turns.
+	for turn in range(turns):
+		time.sleep(3)
+		s = spin()
+
+4a. Now, get rid of the parts where your decrementing 'turns' & replace the print statements using 'turns' with a new method that I called 'get_number_of_remaining_turns()'
+
+	ex..
+
+def get_number_of_remaining_turns(total_turns, current_turn):
+    return total_turns - current_turn
+
+'new line 43'
+ for current_turn in range(turns):
+        s = spin()
+        # If the user spins a 'bankrupt'
+        if s == -1:
+            print("Oh no! You went bankrupt!. Your total winnings is now back to zero.\n"
+                  "Let's spin again.\n")
+            winnings = 0
+        # if the user spins a 'lose a turn'
+        elif s == 0:
+            print("That's no fun, you lost a turn. You have {0} left.\n"
+                  "Let's spin again\n".format(get_number_of_remaining_turns(turns, current_turn)))
+
+
+4b. As for the other condition check inside the while loop.. I think renaming 'b' to 'game_board' makes the decision to call it 'board' or 'blanks' a little easier :D.
+
+    b = blanks(w)
+    ..
+    guesses = []   
+
+Could become..
+	
+	game_board = init_game_board(w)
+	..
+	guesses = []
+
+	** I also renamed 'blanks' to be 'init_game_board(w)' to just be a tad bit clearer about what the method does.
+
+4c. 
+    * I noticed that the string '_ ' was being used outside of this initialize method .. and being used in condition operators such as at the end of the program, to signify if the player had lost the game or not.. 
+
+    * Whenever strings become more than just strings, in this case the string to represent a blank has become significant.. encapsulate that string in a CONSTANT, so you can reference
+    it throughout the entire program & be sure it always the same value.
+
+    * I created a constant .. BLANK_LETTER='_' & refactored its usages , for example..
+
+    def init_game_board(word):
+	    """ Creates a list of blank spaces to representing each letter in word w. """
+	    game_board = [BLANK_LETTER] * len(word)
+	    return game_board
+
+    * Notice I removed the space, because we should handle display formatting in the str#format method : 
+
+    for example, I modified the 'display_board_and_current_winnings' method to insert a ' ' space string, using the str.join method.
+
+    def display_board_and_current_winnings(game_board, winnings, turns_remaining):
+	    """Updates the user with their total winnings and the letters they have gotten correct."""
+	    print("Your total winnings are ${0} with {1} spin(s) to go\n"
+	          "Here's what you have right so far:\n\n"
+	          "{2}\n\n"
+	          "Let's spin again!\n".format(winnings, turns_remaining, ' '.join(game_board)))
+
+
+4d. The method I created in step 3, 'display_current_winnings' actually does 3 things.. 
+	1. it updates the 'game_board'
+	2. displays the board 
+	3. displays current winnings
+
+	** So I made another method 'update_board' to handle updating the board's values & renamed the display method to 'display_board_and_current_winnings', to be more accurate.
+
+	1.  def update_board(game_board, actual_word, choice)
+	2.  display_board_and_current_winnings(game_board, winnings, turns_remaining)
+
+	--> Refactored code too look like --> 
+
+    update_board(game_board, guesses)
+    display_current_winnings(game_board, winnings, get_number_of_remaining_turns(total_turns, current_turn))
+
+    ** The gameboard is a 'list' , which is a mutable data structure in python.. this allows seperating out a method like 'update_board' possible.. because the values of the 'game_board' list are stored based on their last usage, no matter when/where they are called from.
+
+    def update_board(game_board, actual_word, choice):
+    for pos, letter in enumerate(actual_word):
+        if choice.lower() == letter.lower():
+            game_board[pos] = choice.lower()
+
+    ** Also, the updating of the board should only happen when a user guesses a correct letter, so I put the new method 'update_board' inside the conditions that capture a letter being uncovered, instead of always when the board's displayed.
+
+    --> Refactored code too look like --> 
+
+    # The user guesses a correct letter.
+    if guess in w:
+        print("\nThat's correct!" )
+        winnings += s
+        guesses.append(guess)
+        update_board(game_board, w, guess)            --> added update_board to guessing a correct letter
+ 
+    --> Refactored code too look like --> 
+
+     # The user guesses a vowel that is in the word.
+        elif winnings > 250 and guess in w:
+            print("\nThat's correct!")
+            winnings -= 250
+            guesses.append(guess)
+            update_board(game_board, w, guess)        --> added update_board to buying a correct vowel
+
+
+4e. I still haven't dealt with that 2nd condition in the while loop that I deleted.. so gonna add this check to the top of the for loop called 
+	'is_game_board_complete()' & I'll define it as a method like this..
+
+	def is_game_board_complete(game_board):
+    	return BLANK_LETTER not in game_board         --> making '_ ' into a constant also made this read nicely
+
+** I add this new method to the beginning of the turn loop & replace the check at the end of the turn loop.
+
+	* beginning of the turn loop..
+
+    # Play the game until the user runs out of turns.
+    for current_turn in range(total_turns):
+        if is_game_board_complete(game_board): break  --> I'm also adding a 'break' here like you did in the spot where the user guesses the correct word, to end the game.
+        s = spin()
+
+    * End of the turn loop
+
+    # The user ran out of guesses.
+    elif not is_game_board_complete(game_board):      --> I add a 'not' clause here to keep the same logical check as you had before
+
+
+
+5. Without talking about classes.. I took a shot at defining how the user input can work a little differently.  I'm going to predefine what is allowed to be entered by user by declaring all allowable choices into an array 'choices' .. which will also act as a way to identify what has been guessed & let me get rid of some verbose checking in the code.
+
+
+5a. First, here's the valid choices the user can enter, notice they're all lowercase.
+
+valid_choices = ['a','b''c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+
+5b.  Refactor the input logic to force lowercase on all user input strings
+
+	--> Refactored code too look like --> 
+
+	guess = input("What do you think it could be?\n")
+	guess = guess.lower()
+
+5c.  Now, instead of appending a guess each time the user guesses a letter, let's remove any valid letter's that the user provides.
+
+	** This is useful, because it limits what the user can input from a Huuuuge number of possibilities (100k+)--> to just 26.  There's hundreds of ways to encode letters.. spanish, chinese, polish letters.. we could possibly end up keeping track of guesses that make absolutely no sense to the program.. or potentially conflict with the types of checks we do in other functions.  Just always remember that you're accepting 'input' from users globally (lots of languages and different letters) and programatically (special characters, language symbols, byte sequences, etc.,) whenever you use 'input()'.
+
+
+	** I replaced the lines where you were adding the guesses, to remove them from 'this_games_valid_choices' 
+
+	--> 'guessess.append(guess)' with --> 'this_games_valid_choices.remove(guess)'
+
+5d.  Adding a check for valid input and if user has guessed a letter on a previous spin.
+
+	** Two types of valid choices
+
+	1. 'valid_choices'            --> Valid choices that the entire program will allow
+	2. 'this_games_valid_choices' --> Valid choices that keeps track of what's been guessed.. which changes everytime you play the game, so I'm going to use a seperate variable
+
+	# The user provides an invalid single character
+    elif guess.lower() not in valid_choices:
+        print("\nSorry!  Your input was not recognized, please enter a letter from the English Alphabet")
+    elif guess.lower() not in this_games_valid_choices:
+        print("\nYou've already guessed that! Now you lose a turn.")
+
+	** I don't think getting rid of the guesses and replacing it with 'this_games_valid_choices' is completely neccessary, it was just how I ended up doing it.  The important piece was checking for character's that are in the realm of english and letters.
+
+
+* Few things I noted after these possible changes..
+
+* 6.  Fix calculation errors for selecting multiple letters for winnings / purchasing vowels.
+* 7.  Add variable to keep track of 'Win Condition' and refactor the 'a' variable & initial check at the top of the for loop to 'check_for_win_conditions' and.. probably go back to using a 'while' loop that checks if the 'win condition' exists haha.
+
